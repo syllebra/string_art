@@ -1,0 +1,6 @@
+joblib==1.1.0
+numpy==1.22.2
+opencv_python_headless==4.5.4.60
+scikit_image==0.19.1
+skimage==0.0
+tqdm==4.62.3
