@@ -22,7 +22,11 @@ NB_PINS = 300
 LINE_WEIGHT = 47#37
 SPACING = NB_PINS // 10
 TYPE = PinLayout.POINT_CLOUD
-POINT_CLOUD_AVERAGE_RADIUS = 12
+POINT_CLOUD_AVERAGE_RADIUS = 6
+
+ACTIVATE_EARLY_STOP = False
+EARLY_STOP_MEAN_THRESHOLD = 10
+EARLY_STOP_CONSECUTIVE = 500 // POINT_CLOUD_AVERAGE_RADIUS
 
 ITERATIONS = 60000
 SAVE_EVERY = 80
@@ -34,9 +38,9 @@ scale_ratio = 1
 out_ratio = 1.4
 display_ratio = 1
 
-source_path = 'sources/rose_01.jpeg.jpg'
+source_path = 'sources/whale_01.jpg'
 
-point_cloud_mask = None#'sources/portrait_00_mask.jpg'
+point_cloud_mask = 'sources/whale_01_mask.png'
 
 perimeter_path = None
 
@@ -90,12 +94,7 @@ def pins_square(rdm=0.4):
                 cur[0] = cur[0] - (H-cur[1])
                 cur[1] = H-1
                 dir = 2
-        elif(dir == 2):
-            cur[0] = cur[0] - pxdec + int(pxdec *(random.random()-0.5)*2 * rdm)
-            if(cur[0]<0):
-                cur[1] = cur[1] + cur[0]
-                cur[0] = 0
-                dir = 3
+        elif(dir == 2):    pc.compute_cache_K_closest(k=60)
         elif(dir == 3):
             cur[1] = cur[1] - pxdec + int(pxdec *(random.random()-0.5)*2 * rdm)
 
@@ -134,17 +133,21 @@ def pins_point_cloud(av_rad=20, mask_path=None):
         mask=cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         mask = cv2.resize(mask,(0,0),fx=scale_ratio,fy=scale_ratio, interpolation=cv2.INTER_LANCZOS4)
         mask=cv2.threshold(mask, 128, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-        kernel = np.ones((3,3), np.uint8)
-        mask = cv2.dilate(mask, kernel, iterations=av_rad//4)
+        # kernel = np.ones((3,3), np.uint8)
+        # mask = cv2.dilate(mask, kernel, iterations=av_rad//4)
 
     num_pts = int(2.5*(img.shape[0]*img.shape[1]) / (math.pi*av_rad*av_rad))
     pc = PointCloud(num_pts*2)
-    pc.scatterOnMask(img, num_pts, av_rad//2, threshold=0.0)
-    pc.compute_cache_K_closest(k=60)
-    pc.relax(iterations=40, lock_dist=img.shape[0]/30, W = img.shape[1], H = img.shape[0], radius = av_rad*1.1)
-    
+    # pc.scatterOnMask(img, num_pts, av_rad//2, threshold=0.0)
+    # pc.compute_cache_K_closest(k=60)
+    # pc.relax(iterations=40, lock_dist=img.shape[0]/30, W = img.shape[1], H = img.shape[0], radius = av_rad*1.1)
+    pc.create_random_from_precomputed(img.shape[1],img.shape[0], av_rad)
+
     if(mask is not None):
         pc.mask(mask)
+
+    pc.compute_cache_K_closest(k=60)
+
     return pc.p[:pc.count], pc
 
 def pins_perimeter(perimeter_image):
@@ -274,6 +277,7 @@ def compute_line_ids_cache(width = None, height = None, antialiased = False, mas
         
     return cache
 
+print("Computing line caches...")
 orig_cache = compute_line_ids_cache(antialiased = True, mask = in_mask)
 out_cache = compute_line_ids_cache(width = W*out_ratio, height = H * out_ratio, antialiased = True)
 
@@ -327,6 +331,7 @@ def render(iterations=ITERATIONS, history_dir = "./steps", parallel = 0):
         print("Saving directory:",os.path.abspath(save_dir))
 
 
+    early_stop_cpt = 0
     num_jumps = 0
 
     pin = np.random.choice(NB_PINS)
@@ -340,18 +345,6 @@ def render(iterations=ITERATIONS, history_dir = "./steps", parallel = 0):
         
         if(parallel == 0):
             for i in range(NB_PINS-SPACING*2):
-                # test = (test+1)%NB_PINS
-                
-                # if(test == pin or test == last): continue
-
-                # ln, vals = get_cached_line(orig_cache,test,pin)
-                # # if(ln is None):
-                # #     ln = line_ids(pins[pin],pins[test])
-                # #     #print("pb")
-                # if(ln is None or len(ln)==0):
-                #     continue
-                # values = error[ln[0],ln[1]]
-                # sm = np.mean(values)
                 sm = par_search_best(i, pin, last, orig_cache, error)
                 if(sm is None):
                     continue
@@ -362,8 +355,17 @@ def render(iterations=ITERATIONS, history_dir = "./steps", parallel = 0):
             sms = Parallel(n_jobs=parallel, prefer="threads")(delayed(par_search_best)(ii, pin, last, orig_cache, error) for ii in range(NB_PINS-SPACING*2))
             sms = np.array(sms, dtype=np.float64)
             if(np.count_nonzero(np.isfinite(sms))>0):
+                max = np.max(sms)
                 best = np.nanargmax(sms)
                 best = (pin+SPACING+best)%NB_PINS
+
+        if(ACTIVATE_EARLY_STOP and max<EARLY_STOP_MEAN_THRESHOLD):
+            early_stop_cpt += 1
+            if(early_stop_cpt>=EARLY_STOP_CONSECUTIVE):
+                print("Mean threshold reached. Early stopping...")
+            break
+        else:
+            early_stop_cpt = 0
 
         if(best == -1):
             num_jumps += 1
