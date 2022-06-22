@@ -11,40 +11,75 @@ from joblib import Parallel, delayed
 from point_cloud import PointCloud
 
 class PinLayout():
+    # Pins are layout in a ractangular shape around the canvas frame (with some small random offsets to avoid string artifacts)
     RECTANGLE = 0
+    # Pins are layout in a circualr shape around the image
     CIRCLE = 1
+    # Pins are layout around a perimeter defined by a separate mask
     PERIM_IMAGE = 2
+    # Pins are layout in a full point cloud across the entire image (or in a given mask)
     POINT_CLOUD = 3
 
 ###########################################################
+# INPUT PARAMETERS SECTION
+###########################################################
 
-NB_PINS = 300
-LINE_WEIGHT = 47#37
+# Source image path (relative or absolute)
+source_path = 'sources/pexels-george-desipris-818261.jpg'
+
+# Layout type (cf above)
+TYPE = PinLayout.CIRCLE
+
+# Number of pins (excluding point cloud mode)
+NB_PINS = 300 
+
+# "Weight" of each rendered string (1-255)
+LINE_WEIGHT = 27#47#37
+
+# For all modes except point cloud, the number of pins around the
+# last picked where it is not possible to go directly
 SPACING = NB_PINS // 10
-TYPE = PinLayout.POINT_CLOUD
-POINT_CLOUD_AVERAGE_RADIUS = 6
 
+# Total number of iterations (strings) to draw
+ITERATIONS = 60000
+
+# Export a render every N images
+SAVE_EVERY = 80
+
+# If true, draws white string on black background, other way around otherwise
+INVERT = False
+
+# Scale ratio for input (leave auto for coherent parameters across the algorithm)
+auto_scale_ratio = True
+# if auto_scale_ratio is False, scale ratio for the residual computation
+scale_ratio = 1
+
+# Out put ratio (rendering dimension with respect to input image)
+out_ratio = 1.4
+
+# Debug image display ratio with respect to rendering final dimensions
+display_ratio = 1
+
+# For point cloud mode, the average radius, in pixels, between two close pins
+POINT_CLOUD_AVERAGE_RADIUS = 16
+
+# if point cloud mode, path to mask where pins will not be layed out
+# (can be None for full image point cloud layout)
+point_cloud_mask = 'sources/elephant_00_mask.png'
+
+# for perimeter mode, path to the image of perimeter (black and white)
+perimeter_path = None
+
+
+# Early stop parameters (experimental)
 ACTIVATE_EARLY_STOP = False
 EARLY_STOP_MEAN_THRESHOLD = 10
 EARLY_STOP_CONSECUTIVE = 500 // POINT_CLOUD_AVERAGE_RADIUS
 
-ITERATIONS = 60000
-SAVE_EVERY = 80
-
-INVERT = True
-
-auto_scale_ratio = True
-scale_ratio = 1
-out_ratio = 1.4
-display_ratio = 1
-
-source_path = 'sources/whale_01.jpg'
-
-point_cloud_mask = 'sources/whale_01_mask.png'
-
-perimeter_path = None
-
 ###########################################################
+
+
+
 
 # Load an image in grayscale
 img = cv2.imread(source_path,cv2.IMREAD_GRAYSCALE)
