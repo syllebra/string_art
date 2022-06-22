@@ -29,10 +29,14 @@ Create a python 3 environment (for exemple using conda) and install dependencies
 * At a given frequency, rendering images will be saved to "steps/[image_name]/run_***/[image_name_*******.png]"
 
 ## Layout Modes Samples
+This sections shows some results with the different pin layout modes. More results (images and videos) can be found in the [results](https://github.com/syllebra/string_art/tree/main/results) directory.
 ### Point Cloud
 ![Point Cloud layout sample](results/sting_00_0017100.png)
 ![Point Cloud layout sample](results/lion_00_0003900.png)
 <img src="results/elephant_00_0014880.png" alt="Point Cloud layout sample" width="50%"/><img src="results/joker_0006640.png" alt="Point Cloud layout sample" width="50%"/>
+
+<center><img src="results/portrait_00_edited_0014240.png" alt="Point Cloud layout sample" width="70%"/></center>
+<center><img src="results/nude_00_0009680.png" alt="Point Cloud layout sample" width="70%"/></center>
 
 ### Rectangle
 ![Rectangle layout sample](results/sa_manta_00.png)

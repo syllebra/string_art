@@ -25,16 +25,16 @@ class PinLayout():
 ###########################################################
 
 # Source image path (relative or absolute)
-source_path = 'sources/piano_02.jpg'
+source_path = 'sources/nude_00.jpg'
 
 # Layout type (cf above)
-TYPE = PinLayout.RECTANGLE
+TYPE = PinLayout.POINT_CLOUD
 
 # Number of pins (excluding point cloud mode)
 NB_PINS = 300 
 
 # "Weight" of each rendered string (1-255)
-LINE_WEIGHT = 67#47#37
+LINE_WEIGHT = 47#37
 
 # For all modes except point cloud, the number of pins around the
 # last picked where it is not possible to go directly
@@ -47,7 +47,7 @@ ITERATIONS = 60000
 SAVE_EVERY = 80
 
 # If true, draws white string on black background, other way around otherwise
-INVERT = False
+INVERT = True
 
 # Scale ratio for input (leave auto for coherent parameters across the algorithm)
 auto_scale_ratio = True
@@ -61,11 +61,11 @@ out_ratio = 1.4
 display_ratio = 1
 
 # For point cloud mode, the average radius, in pixels, between two close pins
-POINT_CLOUD_AVERAGE_RADIUS = 16
+POINT_CLOUD_AVERAGE_RADIUS = 8
 
 # if point cloud mode, path to mask where pins will not be layed out
 # (can be None for full image point cloud layout)
-point_cloud_mask = None#'sources/elephant_00_mask.png'
+point_cloud_mask = None#'sources/skull_00_mask.png'
 
 # for perimeter mode, path to the image of perimeter (black and white)
 perimeter_path = None
