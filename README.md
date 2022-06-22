@@ -32,7 +32,7 @@ Create a python 3 environment (for exemple using conda) and install dependencies
 ### Point Cloud
 ![Point Cloud layout sample](results/sting_00_0017100.png)
 ![Point Cloud layout sample](results/lion_00_0003900.png)
-<img src="results/elephant_00_0014880.png" alt="Point Cloud layout sample" width="50%"/><img src="results/rose_01_0008880.png" alt="Point Cloud layout sample" width="50%"/>
+<img src="results/elephant_00_0014880.png" alt="Point Cloud layout sample" width="50%"/><img src="results/joker_0006640.png" alt="Point Cloud layout sample" width="50%"/>
 
 ### Rectangle
 ![Rectangle layout sample](results/sa_manta_00.png)
@@ -48,6 +48,10 @@ Create a python 3 environment (for exemple using conda) and install dependencies
 ![Invert parameter sample](results/renaud_03_0044640.png)
 ## Authors
 Cédric Syllebranque
+### Source photo
+* [Stéphane de Bourgies](https://www.bourgies.com/)
+* [National Geographics](https://www.nationalgeographic.fr/)
+* [Pexels](https://www.pexels.com)
 
 ## Version History
 
