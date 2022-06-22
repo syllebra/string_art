@@ -25,16 +25,16 @@ class PinLayout():
 ###########################################################
 
 # Source image path (relative or absolute)
-source_path = 'sources/pexels-george-desipris-818261.jpg'
+source_path = 'sources/piano_02.jpg'
 
 # Layout type (cf above)
-TYPE = PinLayout.CIRCLE
+TYPE = PinLayout.RECTANGLE
 
 # Number of pins (excluding point cloud mode)
 NB_PINS = 300 
 
 # "Weight" of each rendered string (1-255)
-LINE_WEIGHT = 27#47#37
+LINE_WEIGHT = 67#47#37
 
 # For all modes except point cloud, the number of pins around the
 # last picked where it is not possible to go directly
@@ -65,7 +65,7 @@ POINT_CLOUD_AVERAGE_RADIUS = 16
 
 # if point cloud mode, path to mask where pins will not be layed out
 # (can be None for full image point cloud layout)
-point_cloud_mask = 'sources/elephant_00_mask.png'
+point_cloud_mask = None#'sources/elephant_00_mask.png'
 
 # for perimeter mode, path to the image of perimeter (black and white)
 perimeter_path = None
@@ -77,7 +77,6 @@ EARLY_STOP_MEAN_THRESHOLD = 10
 EARLY_STOP_CONSECUTIVE = 500 // POINT_CLOUD_AVERAGE_RADIUS
 
 ###########################################################
-
 
 
 
@@ -129,7 +128,12 @@ def pins_square(rdm=0.4):
                 cur[0] = cur[0] - (H-cur[1])
                 cur[1] = H-1
                 dir = 2
-        elif(dir == 2):    pc.compute_cache_K_closest(k=60)
+        elif(dir == 2):
+            cur[0] = cur[0] - pxdec + int(pxdec *(random.random()-0.5)*2 * rdm)
+            if(cur[0]<0):
+                cur[1] = cur[1] + cur[0]
+                cur[0] = 0
+                dir = 3
         elif(dir == 3):
             cur[1] = cur[1] - pxdec + int(pxdec *(random.random()-0.5)*2 * rdm)
 
