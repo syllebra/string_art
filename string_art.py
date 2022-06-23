@@ -25,7 +25,7 @@ class PinLayout():
 ###########################################################
 
 # Source image path (relative or absolute)
-source_path = 'sources/nude_00.jpg'
+source_path = 'sources/boat_00.jpg'
 
 # Layout type (cf above)
 TYPE = PinLayout.POINT_CLOUD
@@ -47,7 +47,7 @@ ITERATIONS = 60000
 SAVE_EVERY = 80
 
 # If true, draws white string on black background, other way around otherwise
-INVERT = True
+INVERT = False
 
 # Scale ratio for input (leave auto for coherent parameters across the algorithm)
 auto_scale_ratio = True
@@ -61,7 +61,7 @@ out_ratio = 1.4
 display_ratio = 1
 
 # For point cloud mode, the average radius, in pixels, between two close pins
-POINT_CLOUD_AVERAGE_RADIUS = 8
+POINT_CLOUD_AVERAGE_RADIUS = 16
 
 # if point cloud mode, path to mask where pins will not be layed out
 # (can be None for full image point cloud layout)
@@ -258,6 +258,45 @@ elif(TYPE == PinLayout.POINT_CLOUD):
 
 NB_PINS = len(pins)
 print("Total pins:",NB_PINS)
+if(pc is None):
+    pc = PointCloud(pins.shape[0])
+    pc.p = pins
+    pc.count = pins.shape[0]
+
+def find_best_starting_pin(debug = False):
+    target_val = np.max(img) if INVERT else np.min(img)
+    pixel_candidates = np.array(np.where(img == target_val)).T
+    print(pixel_candidates.shape)
+    tmp = None
+    if(debug):
+        tmp = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+    if (pc is None):
+        return None
+
+    if(debug):
+        for i in range(pins.shape[0]):
+            cv2.circle(tmp, (int(pins[i,1]),int(pins[i,0])), 1, (0,255,255), -1)
+
+    ids = []
+    dist = []
+    for i in range(pixel_candidates.shape[0]):
+        id, dis = pc.closestPoint(pixel_candidates[i])
+        ids.append(id)
+        dist.append(dis)
+        if(debug):
+            cv2.circle(tmp, (int(pixel_candidates[i,1]),int(pixel_candidates[i,0])), 3, (255,0,255), 1)
+            cv2.line(tmp, (int(pixel_candidates[i,1]),int(pixel_candidates[i,0])), (int(pins[id,1]),int(pins[id,0])), (0,0,255),1)
+
+    id = np.argmin(np.array(dis))
+    id = ids[id]
+
+    if(debug):
+        cv2.circle(tmp, (int(pins[id,1]),int(pins[id,0])), 3, (255,255,0), 1)
+        cv2.imshow("Low",tmp)
+        cv2.waitKey(0)
+
+    return id
 
 def line_ids(p0,p1, width = None, height = None, antialiased = False, mask = None):
     if(width is None): width = W
@@ -373,7 +412,7 @@ def render(iterations=ITERATIONS, history_dir = "./steps", parallel = 0):
     early_stop_cpt = 0
     num_jumps = 0
 
-    pin = np.random.choice(NB_PINS)
+    pin = find_best_starting_pin()# np.random.choice(NB_PINS)
     last = pin
     for l in tqdm(range(iterations)):
         #pin = np.random.choice(NB_PINS)
@@ -447,6 +486,8 @@ def render(iterations=ITERATIONS, history_dir = "./steps", parallel = 0):
             key = cv2.waitKey(10)
             if(key == 32): # space pause
                 cv2.waitKey(0)
+            if(key == 27 or key =='q'): # "escape" to quit"
+                break
         
         if(history_dir is not None and (l % SAVE_EVERY == 0)):
             name = basename+("_%07d" % l)+".png"
